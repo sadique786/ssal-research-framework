@@ -11,5 +11,5 @@ class BaseDataset(ABC):
         pass
 
     @abstractmethod
-    def num_classes(self):
+    def num_classes(self) -> int:
         pass
