@@ -1,15 +1,9 @@
-# src/utils/seed.py
-
 import random
 import numpy as np
 import torch
 
 
-def set_seed(seed: int = 42) -> None:
-    """
-    Set all random seeds for reproducibility.
-    """
-
+def set_seed(seed: int = 42):
     random.seed(seed)
     np.random.seed(seed)
 

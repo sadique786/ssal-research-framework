@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class BaseDataset(ABC):
 
     @abstractmethod
@@ -11,5 +12,5 @@ class BaseDataset(ABC):
         pass
 
     @abstractmethod
-    def num_classes(self) -> int:
+    def num_classes(self):
         pass

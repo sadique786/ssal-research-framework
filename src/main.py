@@ -1,15 +1,15 @@
-# src/main.py
-
 import torch
+import torch.nn as nn
 
-from torch import nn
-from torch import optim
 from torch.utils.data import DataLoader
 
-from datasets.cifar10 import CIFAR10Dataset
-from models.backbones.resnet18 import ResNet18Classifier
-from trainers.supervised_trainer import SupervisedTrainer
-from utils.seed import set_seed
+from src.datasets.cifar10 import CIFAR10Dataset
+
+from src.models.backbones.resnet18 import ResNet18Classifier
+
+from src.trainers.supervised_trainer import SupervisedTrainer
+
+from src.utils.seed import set_seed
 
 
 def main():
@@ -19,8 +19,12 @@ def main():
     device = (
         "cuda"
         if torch.cuda.is_available()
+        else "mps"
+        if torch.backends.mps.is_available()
         else "cpu"
     )
+
+    print(f"Using device: {device}")
 
     dataset = CIFAR10Dataset()
 
@@ -41,41 +45,25 @@ def main():
 
     model = ResNet18Classifier(
         num_classes=dataset.num_classes()
-    )
+    ).to(device)
 
-    model.to(device)
+    criterion = nn.CrossEntropyLoss()
 
-    optimizer = optim.Adam(
+    optimizer = torch.optim.Adam(
         model.parameters(),
         lr=1e-3,
     )
 
-    criterion = nn.CrossEntropyLoss()
-
     trainer = SupervisedTrainer(
         model=model,
-        optimizer=optimizer,
+        train_loader=train_loader,
+        test_loader=test_loader,
         criterion=criterion,
+        optimizer=optimizer,
         device=device,
     )
 
-    epochs = 5
-
-    for epoch in range(epochs):
-
-        loss = trainer.train_epoch(
-            train_loader
-        )
-
-        accuracy = trainer.evaluate(
-            test_loader
-        )
-
-        print(
-            f"Epoch [{epoch+1}/{epochs}] "
-            f"Loss: {loss:.4f} "
-            f"Accuracy: {accuracy:.2f}%"
-        )
+    trainer.fit(epochs=5)
 
 
 if __name__ == "__main__":

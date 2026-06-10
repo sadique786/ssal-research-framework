@@ -1,5 +1,3 @@
-# src/trainers/supervised_trainer.py
-
 import torch
 
 
@@ -8,22 +6,29 @@ class SupervisedTrainer:
     def __init__(
         self,
         model,
-        optimizer,
+        train_loader,
+        test_loader,
         criterion,
+        optimizer,
         device,
     ):
+
         self.model = model
-        self.optimizer = optimizer
+        self.train_loader = train_loader
+        self.test_loader = test_loader
+
         self.criterion = criterion
+        self.optimizer = optimizer
+
         self.device = device
 
-    def train_epoch(self, dataloader):
+    def train_epoch(self):
 
         self.model.train()
 
-        total_loss = 0
+        running_loss = 0.0
 
-        for images, labels in dataloader:
+        for images, labels in self.train_loader:
 
             images = images.to(self.device)
             labels = labels.to(self.device)
@@ -38,29 +43,44 @@ class SupervisedTrainer:
 
             self.optimizer.step()
 
-            total_loss += loss.item()
+            running_loss += loss.item()
 
-        return total_loss / len(dataloader)
+        return running_loss / len(self.train_loader)
 
-    @torch.no_grad()
-    def evaluate(self, dataloader):
+    def evaluate(self):
 
         self.model.eval()
 
         correct = 0
         total = 0
 
-        for images, labels in dataloader:
+        with torch.no_grad():
 
-            images = images.to(self.device)
-            labels = labels.to(self.device)
+            for images, labels in self.test_loader:
 
-            outputs = self.model(images)
+                images = images.to(self.device)
+                labels = labels.to(self.device)
 
-            predictions = outputs.argmax(dim=1)
+                outputs = self.model(images)
 
-            correct += (predictions == labels).sum().item()
+                predictions = outputs.argmax(dim=1)
 
-            total += labels.size(0)
+                correct += (predictions == labels).sum().item()
+
+                total += labels.size(0)
 
         return 100.0 * correct / total
+
+    def fit(self, epochs):
+
+        for epoch in range(epochs):
+
+            loss = self.train_epoch()
+
+            accuracy = self.evaluate()
+
+            print(
+                f"Epoch [{epoch+1}/{epochs}] "
+                f"Loss: {loss:.4f} "
+                f"Accuracy: {accuracy:.2f}%"
+            )
