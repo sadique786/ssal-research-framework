@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ssal-research-framework"
+version = "0.1.0"
+description = "A reproducible research framework for Self-Supervised Active Learning."
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+license = { text = "MIT" }
+
+authors = [
+    { name = "Sadique Ul Hussain" }
+]
+
+dependencies = [
+    "torch",
+    "torchvision",
+    "numpy",
+    "scikit-learn",
+    "hydra-core>=1.3",
+    "omegaconf>=2.3",
+    "tqdm",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ruff",
+]
+
+tracking = [
+    "wandb",
+]
+
+[project.urls]
+Repository = "https://github.com/sadique786/ssal-research-framework"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]

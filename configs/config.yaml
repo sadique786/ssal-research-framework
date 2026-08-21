@@ -1,0 +1,14 @@
+defaults:
+  - dataset: cifar10
+  - model: resnet18
+  - active_learning: random
+  - experiment: l0_cifar10
+  - _self_
+
+seed: 42
+
+device: auto
+
+project:
+  name: ssal-research-framework
+  version: "0.1.0"

@@ -3,17 +3,41 @@ __pycache__/
 *.py[cod]
 *.pyo
 
-# Virtual env
+# Virtual environments
 .venv/
+venv/
+env/
 
-# Mac
+# Package metadata
+*.egg-info/
+build/
+dist/
+
+# macOS
 .DS_Store
 
-# Experiment outputs
-outputs/
+# Data
+data/*
+!data/.gitkeep
 
-# W&B
+# Experiment outputs
+outputs/*
+!outputs/.gitkeep
+
+# Weights & Biases
 wandb/
 
 # Hydra
 .multirun/
+hydra_outputs/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Package metadata
+*.egg-info/
