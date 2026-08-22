@@ -24,7 +24,6 @@ class CIFAR10DataModule(BaseDataModule):
         download: bool = True,
     ) -> None:
         self.root = Path(root)
-
         self.train_batch_size = train_batch_size
         self.test_batch_size = test_batch_size
         self.num_workers = num_workers
