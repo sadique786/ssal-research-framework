@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import torch
 from torch.utils.data import DataLoader, Dataset
 from torchvision.datasets import CIFAR10
 
@@ -73,7 +74,7 @@ class CIFAR10DataModule(BaseDataModule):
             batch_size=self.train_batch_size,
             shuffle=True,
             num_workers=self.num_workers,
-            pin_memory=True,
+            pin_memory=torch.cuda.is_available(),
         )
 
     def test_dataloader(self) -> DataLoader:
@@ -84,5 +85,5 @@ class CIFAR10DataModule(BaseDataModule):
             batch_size=self.test_batch_size,
             shuffle=False,
             num_workers=self.num_workers,
-            pin_memory=True,
+            pin_memory=torch.cuda.is_available(),
         )
