@@ -77,9 +77,6 @@ Repository Foundation and SSAL Reproduction
 
 ---
 
-## Citation
-
-Coming soon.
 graph TD
     classDef data fill:#e8f4f8,stroke:#2b6cb0,stroke-width:2px,color:#1a202c;
     classDef ssl fill:#fefcbf,stroke:#dd6b20,stroke-width:2px,color:#1a202c;
