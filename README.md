@@ -76,7 +76,8 @@ Current Stage:
 Repository Foundation and SSAL Reproduction
 
 ---
-
+## 
+```
 graph TD
     classDef data fill:#e8f4f8,stroke:#2b6cb0,stroke-width:2px,color:#1a202c;
     classDef ssl fill:#fefcbf,stroke:#dd6b20,stroke-width:2px,color:#1a202c;
@@ -130,3 +131,4 @@ graph TD
     Retrain -.-> Stop{Stopping Criteria<br/>Budget Exhausted<br/>Max Iterations}:::criteria
     Stop -- Continue --> AL1
     Stop -- Terminate --> Eval[8. Final Evaluation<br/>Test Set]:::al
+```
