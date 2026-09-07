@@ -1,0 +1,25 @@
+# ==========================================
+# SSAL Research Framework Requirements
+# ==========================================
+
+# 1. Deep Learning Core
+torch>=2.0.0          # PyTorch core for all neural network operations
+torchvision>=0.15.0   # For ResNet-18, CIFAR-10, and image augmentations (SimCLR)
+
+# 2. Scientific & Array Computation
+numpy>=1.24.0         # Core matrix and array operations
+scipy>=1.10.0         # Scientific computing (often needed for CoreSet distance calculations)
+scikit-learn>=1.2.0   # CoreSet (K-Means), BADGE (K-Means++), synthetic data generation, and F1-score metrics
+
+# 3. Experiment Tracking & Configuration
+hydra-core>=1.3.0     # Hierarchical configuration (the configs/ directory)
+wandb>=0.15.0         # Weights & Biases for tracking AL curves, metrics, and ablations
+omegaconf>=2.3.0      # Dependency of Hydra, handles the YAML config dictionaries
+
+# 4. Data Handling & Visualization
+pandas>=2.0.0         # Dataframe management for logging cycle-by-cycle metrics
+matplotlib>=3.7.0     # 2D synthetic data visualizations and AL bounding boxes
+seaborn>=0.12.0       # Statistical data visualization (enhances matplotlib plots)
+
+# 5. Utilities
+tqdm>=4.65.0          # Progress bars for SSL pretraining and AL cycle loops

@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *.pyo
+*.so
 
 # Virtual environments
 .venv/
@@ -24,6 +25,10 @@ data/*
 outputs/*
 !outputs/.gitkeep
 
+# Experiment outputs
+experiments/*
+!experiments/.gitkeep
+
 # Weights & Biases
 wandb/
 
@@ -39,5 +44,17 @@ htmlcov/
 # Jupyter
 .ipynb_checkpoints/
 
+# Ruff
+.ruff_cache/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
 # Package metadata
 *.egg-info/
+
+# Hydra outputs
+outputs/
+multirun/

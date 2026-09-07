@@ -10,6 +10,7 @@ from ssal.active_learning import (
     RandomSamplingStrategy,
 )
 from ssal.data import CIFAR10DataModule
+from ssal.experiments import ExperimentLogger, ExperimentRun
 from ssal.models import ResNet18Classifier
 from ssal.training import SupervisedTrainer
 from ssal.utils import get_device, set_seed
@@ -17,6 +18,7 @@ from ssal.utils import get_device, set_seed
 
 def run_active_learning(
     cfg: DictConfig,
+    logger: ExperimentLogger,
     device: torch.device | None = None,
 ) -> ActiveLearningExperiment:
     """Run the configured active learning experiment."""
@@ -86,7 +88,14 @@ def run_active_learning(
             epochs=epochs,
             batch_size=batch_size,
         )
-
+        
+        logger.log_round(
+            round_index=round_index,
+            metrics=metrics,
+            labeled_samples=pool.num_labeled,
+            unlabeled_samples=pool.num_unlabeled,
+        )
+        
         print(
             f"Round [{round_index}/{num_rounds}] | "
             f"Train Loss: {metrics['train_loss']:.4f} | "
@@ -120,10 +129,19 @@ def run_active_learning(
 )
 def main(cfg: DictConfig) -> None:
     """Run the SSAL active learning experiment."""
-
     set_seed(cfg.seed)
-
     device = get_device(cfg.device)
+
+    run = ExperimentRun(cfg)
+    run.create()
+    run.save_config()
+    run.save_metadata(
+        device=str(device),
+    )
+    
+    logger = ExperimentLogger(
+        run_dir=run.run_dir,
+    )
 
     print("=" * 60)
     print("SSAL Research Framework")
@@ -133,10 +151,12 @@ def main(cfg: DictConfig) -> None:
     print(f"Model: {cfg.model.name}")
     print(f"Device: {device}")
     print(f"Seed: {cfg.seed}")
+    print(f"Run directory: {run.run_dir}")
     print("=" * 60)
 
     run_active_learning(
         cfg=cfg,
+        logger=logger,
         device=device,
     )
 

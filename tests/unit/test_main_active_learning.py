@@ -6,6 +6,7 @@ import torch
 from omegaconf import OmegaConf
 from torch.utils.data import DataLoader, TensorDataset
 
+from ssal.experiments import ExperimentLogger
 from ssal.main import run_active_learning
 
 
@@ -48,17 +49,19 @@ def create_config():
 def create_dataset() -> TensorDataset:
     """Create a small synthetic binary-classification dataset."""
     torch.manual_seed(42)
-
     features = torch.randn(100, 4)
     labels = torch.randint(0, 2, (100,))
-
     return TensorDataset(features, labels)
 
 
-def test_run_active_learning_executes_configured_rounds() -> None:
+def test_run_active_learning_executes_configured_rounds(tmp_path) -> None:
     """Test that the runner executes configured AL rounds."""
     cfg = create_config()
     dataset = create_dataset()
+
+    logger = ExperimentLogger(
+        run_dir=tmp_path,
+    )
 
     with patch("ssal.main.CIFAR10DataModule") as data_cls, patch(
         "ssal.main.ResNet18Classifier"
@@ -87,11 +90,22 @@ def test_run_active_learning_executes_configured_rounds() -> None:
 
         experiment.query.return_value = list(range(10))
 
-        run_active_learning(cfg)
+        run_active_learning(
+            cfg,
+            logger=logger,
+        )
 
     assert experiment_cls.call_count == 1
     assert experiment.run_round.call_count == 2
+
+    # Query happens only between rounds.
     assert experiment.query.call_count == 1
     assert experiment.update_pool.call_count == 1
-    experiment.query.assert_called_once_with(query_size=10)
-    experiment.update_pool.assert_called_once_with(list(range(10)))
+
+    experiment.query.assert_called_once_with(
+        query_size=10,
+    )
+
+    experiment.update_pool.assert_called_once_with(
+        list(range(10)),
+    )
