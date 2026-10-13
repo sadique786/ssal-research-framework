@@ -36,6 +36,7 @@ def run_active_learning(
     )
 
     train_dataset = data.train_dataset()
+    acquisition_dataset = data.acquisition_dataset()
     test_loader = data.test_dataloader()
 
     model = ResNet18Classifier(
@@ -72,6 +73,7 @@ def run_active_learning(
 
     experiment = ActiveLearningExperiment(
         dataset=train_dataset,
+        acquisition_dataset=acquisition_dataset,
         pool=pool,
         strategy=strategy,
     )

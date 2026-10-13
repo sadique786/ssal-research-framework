@@ -58,7 +58,8 @@ def create_dataset() -> TensorDataset:
 def test_run_active_learning_executes_configured_rounds(tmp_path) -> None:
     """Test that the runner executes configured AL rounds."""
     cfg = create_config()
-    dataset = create_dataset()
+    train_dataset = create_dataset()
+    acquisition_dataset = create_dataset()
 
     logger = ExperimentLogger(
         run_dir=tmp_path,
@@ -71,9 +72,10 @@ def test_run_active_learning_executes_configured_rounds(tmp_path) -> None:
     ), patch(
         "ssal.main.ActiveLearningExperiment"
     ) as experiment_cls:
-        data_cls.return_value.train_dataset.return_value = dataset
+        data_cls.return_value.train_dataset.return_value = train_dataset
+        data_cls.return_value.acquisition_dataset.return_value = acquisition_dataset
         data_cls.return_value.test_dataloader.return_value = DataLoader(
-            dataset,
+            train_dataset,
             batch_size=10,
             shuffle=False,
         )
@@ -97,6 +99,9 @@ def test_run_active_learning_executes_configured_rounds(tmp_path) -> None:
         )
 
     assert experiment_cls.call_count == 1
+    data_cls.return_value.acquisition_dataset.assert_called_once_with()
+    assert experiment_cls.call_args.kwargs["dataset"] is train_dataset
+    assert experiment_cls.call_args.kwargs["acquisition_dataset"] is acquisition_dataset
     assert experiment.run_round.call_count == 2
 
     # Query happens only between rounds.

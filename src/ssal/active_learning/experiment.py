@@ -17,13 +17,23 @@ class ActiveLearningExperiment:
         dataset: Dataset[Any],
         pool: ActiveLearningPool,
         strategy: BaseQueryStrategy,
+        acquisition_dataset: Dataset[Any] | None = None,
     ) -> None:
         if len(dataset) != pool.dataset_size:
             raise ValueError(
                 "Dataset size must match the active learning pool size."
             )
 
+        if acquisition_dataset is None:
+            acquisition_dataset = dataset
+
+        if len(acquisition_dataset) != pool.dataset_size:
+            raise ValueError(
+                "Acquisition dataset size must match the active learning pool size."
+            )
+
         self.dataset = dataset
+        self.acquisition_dataset = acquisition_dataset
         self.pool = pool
         self.strategy = strategy
         self.history: list[dict[str, float]] = []
@@ -100,7 +110,7 @@ class ActiveLearningExperiment:
         selected = self.strategy.query(
             self.pool,
             query_size=query_size,
-            dataset=self.dataset,
+            dataset=self.acquisition_dataset,
             **kwargs,
         )
         return selected.tolist()

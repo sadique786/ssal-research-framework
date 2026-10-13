@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import numpy as np
+import pytest
 import torch
 from torch import nn
 from torch.optim import SGD
@@ -11,6 +13,18 @@ from ssal.active_learning import (
     RandomSamplingStrategy,
 )
 from ssal.training import SupervisedTrainer
+
+
+class RecordingStrategy(RandomSamplingStrategy):
+    """Record the dataset supplied by the experiment query path."""
+
+    def __init__(self) -> None:
+        super().__init__(seed=42)
+        self.dataset = None
+
+    def query(self, pool, query_size, **kwargs):
+        self.dataset = kwargs["dataset"]
+        return pool.unlabeled_indices[1 : query_size + 1]
 
 
 def create_dataset() -> TensorDataset:
@@ -71,6 +85,7 @@ def test_experiment_initializes_correctly() -> None:
     )
 
     assert experiment.dataset is dataset
+    assert experiment.acquisition_dataset is dataset
     assert experiment.pool is pool
     assert experiment.strategy is strategy
 
@@ -97,6 +112,50 @@ def test_experiment_creates_labeled_dataloader() -> None:
     )
 
     assert len(loader.dataset) == 20
+    assert loader.dataset.dataset is dataset
+
+
+def test_experiment_uses_acquisition_dataset_for_query() -> None:
+    """Training and acquisition datasets remain separate in their paths."""
+
+    training_dataset = create_dataset()
+    acquisition_dataset = TensorDataset(
+        torch.arange(100, dtype=torch.float32).unsqueeze(1),
+        torch.zeros(100, dtype=torch.long),
+    )
+    pool = ActiveLearningPool(dataset_size=100, initial_labeled_size=20, seed=42)
+    strategy = RecordingStrategy()
+    experiment = ActiveLearningExperiment(
+        dataset=training_dataset,
+        acquisition_dataset=acquisition_dataset,
+        pool=pool,
+        strategy=strategy,
+    )
+
+    train_loader = experiment.create_labeled_dataloader(batch_size=5)
+    selected = experiment.query(query_size=3)
+
+    expected = pool.unlabeled_indices[1:4]
+    assert train_loader.dataset.dataset is training_dataset
+    assert strategy.dataset is acquisition_dataset
+    assert selected == expected.tolist()
+    assert np.all(np.isin(selected, pool.unlabeled_indices))
+
+
+def test_experiment_rejects_mismatched_acquisition_dataset_size() -> None:
+    dataset = create_dataset()
+    pool = ActiveLearningPool(dataset_size=100, initial_labeled_size=20, seed=42)
+    mismatched_dataset = TensorDataset(
+        torch.randn(99, 4), torch.zeros(99, dtype=torch.long)
+    )
+
+    with pytest.raises(ValueError, match="Acquisition dataset size"):
+        ActiveLearningExperiment(
+            dataset=dataset,
+            acquisition_dataset=mismatched_dataset,
+            pool=pool,
+            strategy=RandomSamplingStrategy(seed=42),
+        )
 
 
 def test_experiment_runs_one_round() -> None:
