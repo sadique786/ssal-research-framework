@@ -31,6 +31,7 @@ def create_config():
                 "pretrained": False,
             },
             "active_learning": {
+		"name": "random",
                 "initial_labeled_size": 20,
                 "query_size": 10,
                 "num_rounds": 2,
@@ -102,9 +103,10 @@ def test_run_active_learning_executes_configured_rounds(tmp_path) -> None:
     assert experiment.query.call_count == 1
     assert experiment.update_pool.call_count == 1
 
-    experiment.query.assert_called_once_with(
-        query_size=10,
-    )
+    experiment.query.assert_called_once()
+    assert experiment.query.call_args.kwargs["query_size"] == 10
+    assert experiment.query.call_args.kwargs["batch_size"] == 10
+    assert "trainer" in experiment.query.call_args.kwargs
 
     experiment.update_pool.assert_called_once_with(
         list(range(10)),

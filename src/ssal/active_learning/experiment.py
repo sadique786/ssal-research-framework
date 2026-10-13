@@ -86,13 +86,24 @@ class ActiveLearningExperiment:
     def query(
         self,
         query_size: int,
+        *,
+        trainer: SupervisedTrainer | None = None,
+        batch_size: int = 128,
     ) -> list[int]:
-        """Select samples from the unlabeled pool."""
+        """Select original dataset indices from the unlabeled pool."""
 
-        return self.strategy.query(
+        kwargs: dict[str, Any] = {"batch_size": batch_size}
+        if trainer is not None:
+            kwargs["model"] = trainer.model
+            kwargs["device"] = trainer.device
+
+        selected = self.strategy.query(
             self.pool,
             query_size=query_size,
+            dataset=self.dataset,
+            **kwargs,
         )
+        return selected.tolist()
 
     def update_pool(
         self,
