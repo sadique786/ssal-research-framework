@@ -1,6 +1,6 @@
 name: cifar10
 
-root: data
+root: ${oc.env:HOME}/datasets/CIFAR10
 
 num_classes: 10
 

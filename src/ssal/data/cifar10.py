@@ -58,6 +58,19 @@ class CIFAR10DataModule(BaseDataModule):
 
         return self._train_dataset
 
+    def acquisition_dataset(self) -> Dataset:
+        """Return training images with deterministic acquisition transforms."""
+
+        if self._train_dataset is None:
+            self.setup()
+
+        return CIFAR10(
+            root=self.root,
+            train=True,
+            transform=get_cifar10_test_transform(),
+            download=False,
+        )
+
     def test_dataset(self) -> Dataset:
         """Return the CIFAR-10 test dataset."""
 

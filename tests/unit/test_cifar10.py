@@ -1,10 +1,13 @@
+from pathlib import Path
+
 from ssal.data import CIFAR10DataModule
 
 
 def test_cifar10_datasets() -> None:
     data = CIFAR10DataModule(
-        root="data",
+        root=Path.home() / "datasets" / "CIFAR10",
         num_workers=0,
+        download=False,
     )
 
     train_dataset = data.train_dataset()
@@ -16,8 +19,9 @@ def test_cifar10_datasets() -> None:
 
 def test_cifar10_sample_shape_and_label() -> None:
     data = CIFAR10DataModule(
-        root="data",
+        root=Path.home() / "datasets" / "CIFAR10",
         num_workers=0,
+        download=False,
     )
 
     train_dataset = data.train_dataset()
@@ -30,8 +34,9 @@ def test_cifar10_sample_shape_and_label() -> None:
 
 def test_cifar10_classes() -> None:
     data = CIFAR10DataModule(
-        root="data",
+        root=Path.home() / "datasets" / "CIFAR10",
         num_workers=0,
+        download=False,
     )
 
     train_dataset = data.train_dataset()

@@ -9,6 +9,7 @@ from ssal.active_learning import (
     ActiveLearningPool,
     RandomSamplingStrategy,
 )
+from ssal.active_learning.least_confidence import LeastConfidenceStrategy
 from ssal.data import CIFAR10DataModule
 from ssal.experiments import ExperimentLogger, ExperimentRun
 from ssal.models import ResNet18Classifier
@@ -59,9 +60,15 @@ def run_active_learning(
         seed=cfg.active_learning.seed,
     )
 
-    strategy = RandomSamplingStrategy(
-        seed=cfg.active_learning.seed,
-    )
+    strategy_name = str(cfg.active_learning.name).lower()
+    if strategy_name == "random":
+        strategy = RandomSamplingStrategy(seed=cfg.active_learning.seed)
+    elif strategy_name == "least_confidence":
+        strategy = LeastConfidenceStrategy()
+    else:
+        raise ValueError(
+            f"Unsupported active-learning strategy: {strategy_name}"
+        )
 
     experiment = ActiveLearningExperiment(
         dataset=train_dataset,
@@ -109,6 +116,8 @@ def run_active_learning(
         if round_index < num_rounds:
             selected = experiment.query(
                 query_size=query_size,
+                trainer=trainer,
+                batch_size=batch_size,
             )
 
             experiment.update_pool(selected)
@@ -159,6 +168,9 @@ def main(cfg: DictConfig) -> None:
         logger=logger,
         device=device,
     )
+
+    logger.save()
+    print(f"Metrics saved to: {run.run_dir}")
 
 
 if __name__ == "__main__":

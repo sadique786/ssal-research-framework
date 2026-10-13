@@ -1,0 +1,7 @@
+name: least_confidence
+
+initial_labeled_size: 5000
+query_size: 2500
+num_rounds: 5
+
+seed: 42
