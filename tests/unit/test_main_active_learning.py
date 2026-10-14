@@ -2,15 +2,17 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
+import pytest
 import torch
 from omegaconf import OmegaConf
 from torch.utils.data import DataLoader, TensorDataset
 
+from ssal.active_learning import LeastConfidenceStrategy, RandomSamplingStrategy
 from ssal.experiments import ExperimentLogger
 from ssal.main import run_active_learning
 
 
-def create_config():
+def create_config(active_learning_name: str = "random"):
     """Create a minimal configuration for testing."""
     return OmegaConf.create(
         {
@@ -31,7 +33,7 @@ def create_config():
                 "pretrained": False,
             },
             "active_learning": {
-		"name": "random",
+                "name": active_learning_name,
                 "initial_labeled_size": 20,
                 "query_size": 10,
                 "num_rounds": 2,
@@ -55,9 +57,18 @@ def create_dataset() -> TensorDataset:
     return TensorDataset(features, labels)
 
 
-def test_run_active_learning_executes_configured_rounds(tmp_path) -> None:
+@pytest.mark.parametrize(
+    ("strategy_name", "strategy_type"),
+    [
+        ("random", RandomSamplingStrategy),
+        ("least_confidence", LeastConfidenceStrategy),
+    ],
+)
+def test_run_active_learning_executes_configured_rounds(
+    tmp_path, strategy_name, strategy_type
+) -> None:
     """Test that the runner executes configured AL rounds."""
-    cfg = create_config()
+    cfg = create_config(active_learning_name=strategy_name)
     train_dataset = create_dataset()
     acquisition_dataset = create_dataset()
 
@@ -99,6 +110,7 @@ def test_run_active_learning_executes_configured_rounds(tmp_path) -> None:
         )
 
     assert experiment_cls.call_count == 1
+    assert isinstance(experiment_cls.call_args.kwargs["strategy"], strategy_type)
     data_cls.return_value.acquisition_dataset.assert_called_once_with()
     assert experiment_cls.call_args.kwargs["dataset"] is train_dataset
     assert experiment_cls.call_args.kwargs["acquisition_dataset"] is acquisition_dataset

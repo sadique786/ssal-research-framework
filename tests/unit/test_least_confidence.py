@@ -2,14 +2,21 @@ import numpy as np
 import pytest
 import torch
 from torch import nn
+from torch.optim import SGD
 from torch.utils.data import TensorDataset
 
-from ssal.active_learning import ActiveLearningPool, LeastConfidenceStrategy
+from ssal.active_learning import (
+    ActiveLearningExperiment,
+    ActiveLearningPool,
+    LeastConfidenceStrategy,
+)
+from ssal.training import SupervisedTrainer
 
 
 class FixedLogitModel(nn.Module):
     def __init__(self):
         super().__init__()
+        self.anchor = nn.Parameter(torch.zeros(()))
         self.register_buffer(
             "logits",
             torch.tensor([
@@ -24,7 +31,7 @@ class FixedLogitModel(nn.Module):
 
     def forward(self, x):
         indices = x[:, 0].long()
-        return self.logits[indices]
+        return self.logits[indices] + self.anchor * 0
 
 
 def make_case():
@@ -85,3 +92,29 @@ def test_least_confidence_rejects_invalid_query_size():
             pool, 0, dataset=dataset, model=model,
             device=torch.device("cpu"),
         )
+
+
+def test_least_confidence_cpu_smoke_uses_original_pool_indices():
+    """Exercise the real pool, experiment, and strategy on CPU-only data."""
+    acquisition_dataset, pool, model = make_case()
+    training_dataset = TensorDataset(
+        torch.full((6, 1), 99.0),
+        torch.zeros(6, dtype=torch.long),
+    )
+    trainer = SupervisedTrainer(
+        model=model,
+        device=torch.device("cpu"),
+        optimizer=SGD(model.parameters(), lr=0.1),
+    )
+    experiment = ActiveLearningExperiment(
+        dataset=training_dataset,
+        acquisition_dataset=acquisition_dataset,
+        pool=pool,
+        strategy=LeastConfidenceStrategy(),
+    )
+
+    selected = experiment.query(query_size=3, trainer=trainer, batch_size=2)
+
+    assert selected == [1, 3, 5]
+    assert len(selected) == len(set(selected))
+    assert np.all(np.isin(selected, pool.unlabeled_indices))
